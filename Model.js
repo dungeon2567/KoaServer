@@ -490,7 +490,7 @@ class ReferencesOneRelation extends Type {
 
     if (val !== undefined) {
       context.columns.push({
-        field: this.name,
+        field: this.foreignKey,
         value: val
       });
     }
