@@ -27,8 +27,8 @@ class Type {
     context.columns.push(sql `${sql.identifier([field.parent.name, field.name])} as ${sql.identifier([field.name])}`);
   }
 
-  insertChildren(pool, val){
-    if(val !== undefined)
+  insertChildren(pool, val) {
+    if (val !== undefined)
       throw new Error();
   }
 }
@@ -449,7 +449,7 @@ class ReferencesManyRelation extends Type {
   }
 
   include(context) {
-    if (this.type.label) { 
+    if (this.type.label) {
       context.columns.push(sql `(select array_agg(json_build_object('value', id, 'label', ${sql.identifier([this.type.label])}) order by id) from ${sql.identifier([this.type.name])} where ${sql.identifier([this.type.name, this.foreignKey])} = ${sql.identifier([this.inverseRelation.type.name, 'id'])}) as ${sql.identifier([this.inverseRelation.foreignKey])}`);
     }
   }
@@ -481,6 +481,19 @@ class ReferencesOneRelation extends Type {
 
     this.type = type;
     this.foreignKey = foreignKey;
+  }
+
+  insertChildren(pool, val) {
+    if (!Number.isInteger(val)) {
+      throw new Error();
+    }
+
+    if (val !== undefined) {
+      context.columns.push({
+        field: this.name,
+        value: val
+      });
+    }
   }
 
   async search(pool, key, queryParams) {
