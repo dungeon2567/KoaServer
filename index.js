@@ -21,7 +21,7 @@ const EntradaProduto = model.define("entrada_produto", undefined, {
   id: IntType.computed(),
   quantidade: DecimalType,
   valor_unitario: DecimalType,
-  data_entrada: DateType
+  data_entrada: DateType.computed()
 });
 
 Produto.referencesMany('entradas', EntradaProduto, 'produto');
