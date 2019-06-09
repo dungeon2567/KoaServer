@@ -1,0 +1,41 @@
+﻿runtime: nodejs10
+
+handlers:
+ - url: /css
+   static_dir: frontend/dist/css
+   secure: always
+
+ - url: /img
+   static_dir: frontend/dist/img
+   secure: always
+
+ - url: /img/icons
+   static_dir: frontend/dist/img/icons
+   secure: always
+
+ - url: /js
+   mime_type: text/javascript
+   static_dir: frontend/dist/js
+   secure: always
+
+ - url: /(.*\.js)$
+   mime_type: text/javascript
+   static_files: frontend/dist/\1
+   upload: frontend/dist/.*\.js$
+   secure: always
+
+ - url: /(.*\.(ico|txt|json))$
+   static_files: frontend/dist/\1
+   upload: frontend/dist/.*\.(ico|txt|json)$
+   secure: always
+
+ - url: /api/.*
+   script: auto
+   secure: always
+
+ - url: '/(.*)'
+   mime_type: text/html
+   static_files: frontend/dist/index.html
+   upload: frontend/dist/index.html
+   secure: always
+   expiration: "1s"
