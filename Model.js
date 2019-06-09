@@ -27,7 +27,7 @@ class Type {
     context.columns.push(sql `${sql.identifier([field.parent.name, field.name])} as ${sql.identifier([field.name])}`);
   }
 
-  insertChildren(pool, val) {
+  insertChildren(context, val) {
     if (val !== undefined)
       throw new Error();
   }
@@ -483,7 +483,7 @@ class ReferencesOneRelation extends Type {
     this.foreignKey = foreignKey;
   }
 
-  insertChildren(pool, val) {
+  insertChildren(context, val) {
     if (!Number.isInteger(val)) {
       throw new Error();
     }
