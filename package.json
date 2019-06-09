@@ -8,6 +8,9 @@
     "deploy": "(cd frontend) && (npm run build) && (cd ..) && (gcloud app deploy app.yaml --quiet)",
     "start": "node index.js"
   },
+  "engines": {
+    "node": "11.2.0"
+  },
   "author": "",
   "license": "ISC",
   "dependencies": {
