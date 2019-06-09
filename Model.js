@@ -444,7 +444,7 @@ class ReferencesManyRelation extends Type {
   }
 
   include(context) {
-    if (this.type.label) {
+    if (this.type.label) { 
       context.columns.push(sql `(select array_agg(json_build_object('value', id, 'label', ${sql.identifier([this.type.label])}) order by id) from ${sql.identifier([this.type.name])} where ${sql.identifier([this.type.name, this.foreignKey])} = ${sql.identifier([this.inverseRelation.type.name, 'id'])}) as ${sql.identifier([this.inverseRelation.foreignKey])}`);
     }
   }
