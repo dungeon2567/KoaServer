@@ -26,6 +26,11 @@ class Type {
   include(field, context) {
     context.columns.push(sql `${sql.identifier([field.parent.name, field.name])} as ${sql.identifier([field.name])}`);
   }
+
+  insertChildren(pool, val){
+    if(val !== undefined)
+      throw new Error();
+  }
 }
 
 const StringType = new class extends Type {
