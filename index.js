@@ -12,8 +12,9 @@ const Produto = model.define("produto", "descricao", {
   id: IntType.computed(),
   status: StringType,
   descricao: StringType,
-  estoque_minimo: IntType,
-  estoque_maximo: IntType
+  estoque: DecimalType.computed(),
+  estoque_minimo: DecimalType,
+  estoque_maximo: DecimalType
 });
 
 const EntradaProduto = model.define("entrada_produto", undefined, {
