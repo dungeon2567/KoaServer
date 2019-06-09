@@ -1,25 +1,29 @@
-const { Model, IntType, StringType, DateType, DateTimeType } = require("./Model");
+const { Model, IntType, StringType, DateType, DecimalType, DateTimeType } = require("./Model");
 
 const Cors = require('@koa/cors');
 
 const { createPool } = require('slonik');
 
-const pool = createPool("postgresql://idzaskuf:TQD9KFZOPEpWHej3jrY_YVgpKzogDKan@isilo.db.elephantsql.com:5432/idzaskuf");
+const pool = createPool("postgres://fjgzgpxpxfwjfq:9c8fb54e0758c1d2bfe0c5bff807c64065470ee7ef0b002d3417c0b64fc11618@ec2-75-101-128-10.compute-1.amazonaws.com:5432/d27pt8cmn2vf87");
 
 const model = new Model(pool);
 
-const Book = model.define("book", "title", {
+const Produto = model.define("produto", "descricao", {
   id: IntType.computed(),
-  title: StringType,
-  data_criacao: DateTimeType
+  status: StringType,
+  descricao: StringType,
+  estoque_minimo: IntType,
+  estoque_maximo: IntType
 });
 
-const Author = model.define("author", "name", {
+const EntradaProduto = model.define("entrada_produto", undefined, {
   id: IntType.computed(),
-  name: StringType
+  quantidade: DecimalType,
+  valor_unitario: DecimalType,
+  data_entrada: DateType
 });
 
-Author.hasManyThrough("books", Book, "author", "book_author");
+Produto.referencesMany('entradas', EntradaProduto, 'produto');
 
 const Koa = require("koa");
 const Router = require("koa-router");

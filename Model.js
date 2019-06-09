@@ -1,4 +1,6 @@
-const { sql } = require('slonik');
+const {
+  sql
+} = require('slonik');
 
 class Type {
   optional() {
@@ -17,10 +19,12 @@ class Type {
     return this.__computed;
   }
 
-  parse(val) { return val; }
+  parse(val) {
+    return val;
+  }
 
   include(field, context) {
-    context.columns.push(sql`${sql.identifier([field.parent.name, field.name])} as ${sql.identifier([field.name])}`);
+    context.columns.push(sql `${sql.identifier([field.parent.name, field.name])} as ${sql.identifier([field.name])}`);
   }
 }
 
@@ -33,6 +37,12 @@ const StringType = new class extends Type {
 const IntType = new class extends Type {
   get name() {
     return "Int";
+  }
+};
+
+const DecimalType = new class extends Type {
+  get name() {
+    return "Decimal";
   }
 };
 
@@ -49,7 +59,7 @@ const DateTimeType = new class extends Type {
   }
 
   include(field, context) {
-    context.columns.push(sql`to_json(${sql.identifier([field.parent.name, field.name])})#>>'{}' as ${sql.identifier([field.name])}`);
+    context.columns.push(sql `to_json(${sql.identifier([field.parent.name, field.name])})#>>'{}' as ${sql.identifier([field.name])}`);
   }
 }
 
@@ -59,7 +69,7 @@ const TimeType = new class extends Type {
   }
 
   include(field, context) {
-    context.columns.push(sql`to_json(${sql.identifier([field.parent.name, field.name])})#>>'{}' as ${sql.identifier([field.name])}`);
+    context.columns.push(sql `to_json(${sql.identifier([field.parent.name, field.name])})#>>'{}' as ${sql.identifier([field.name])}`);
   }
 }
 
@@ -69,7 +79,7 @@ const DateType = new class extends Type {
   }
 
   include(field, context) {
-    context.columns.push(sql`to_json(${sql.identifier([field.parent.name, field.name])})#>>'{}' as ${sql.identifier([field.name])}`);
+    context.columns.push(sql `to_json(${sql.identifier([field.parent.name, field.name])})#>>'{}' as ${sql.identifier([field.name])}`);
   }
 }
 
@@ -119,22 +129,24 @@ class Field {
   }
 
   async find(pool, key) {
-    const { rows: [result] } = await pool.query(sql`select ${sql.identifier([this.name])} from ${sql.identifier([this.parent.name])} where id = ${key}`);
+    const {
+      rows: [result]
+    } = await pool.query(sql `select ${sql.identifier([this.name])} from ${sql.identifier([this.parent.name])} where id = ${key}`);
 
     if (result) {
       return result[this.name];
-    }
-    else
+    } else
       return null;
   }
 
   async search(pool, key) {
-    const { rows: [result] } = await pool.query(sql`select ${sql.identifier([this.name])} from ${sql.identifier([this.parent.name])} where id = ${key}`);
+    const {
+      rows: [result]
+    } = await pool.query(sql `select ${sql.identifier([this.name])} from ${sql.identifier([this.parent.name])} where id = ${key}`);
 
     if (result) {
       return result[this.name];
-    }
-    else
+    } else
       return null;
   }
 
@@ -197,10 +209,10 @@ class UserType extends Type {
 
       switch (op) {
         case "eq":
-          filters.push(sql`${sql.identifier([fieldName])} = ${value}`);
+          filters.push(sql `${sql.identifier([fieldName])} = ${value}`);
           break;
         case "ne":
-          filters.push(sql`${sql.identifier([fieldName])} != ${value}`);
+          filters.push(sql `${sql.identifier([fieldName])} != ${value}`);
           break;
       }
     }
@@ -241,6 +253,17 @@ class UserType extends Type {
     type.fields[foreignKey] = inverseRelation;
   }
 
+  referencesMany(name, type, foreignKey) {
+    const relation = new ReferencesManyRelation(type, foreignKey);
+    const inverseRelation = new ReferencesOneRelation(this, name);
+
+    relation.inverseRelation = inverseRelation;
+    inverseRelation.inverseRelation = relation;
+
+    this.fields[name] = relation;
+    type.fields[foreignKey] = inverseRelation;
+  }
+
   referencesOne(name, type, foreignKey) {
     const relation = new ReferencesOneRelation(type, name);
     const inverseRelation = new ReferencesManyRelation(this, foreignKey);
@@ -265,15 +288,17 @@ class UserType extends Type {
       field.include(context);
     }
 
-    var query = sql`select ${context.columns.reduce((a, b) => sql`${a}, ${b}`)} from ${sql.identifier([this.name])}`;
+    var query = sql `select ${context.columns.reduce((a, b) => sql`${a}, ${b}`)} from ${sql.identifier([this.name])}`;
 
     for (const join of context.joins) {
       query = join(query);
     }
 
-    query = sql`${query} where ${sql.identifier([this.name, 'id'])} = ${key}`;
+    query = sql `${query} where ${sql.identifier([this.name, 'id'])} = ${key}`;
 
-    const { rows: [object] } = await pool.query(query);
+    const {
+      rows: [object]
+    } = await pool.query(query);
 
     return object;
   }
@@ -291,7 +316,7 @@ class UserType extends Type {
       field.include(context);
     }
 
-    var query = sql`select ${context.columns.reduce((a, b) => sql`${a}, ${b}`)} from ${sql.identifier([this.name])}`;
+    var query = sql `select ${context.columns.reduce((a, b) => sql`${a}, ${b}`)} from ${sql.identifier([this.name])}`;
 
     for (const join of context.joins) {
       query = join(query);
@@ -300,10 +325,12 @@ class UserType extends Type {
     const filters = this.buildFilters(queryParams);
 
     if (filters.length > 0) {
-      query = sql`${query} where ${filters.reduce((a, b) => sql`${a} and ${b}`)}`;
+      query = sql `${query} where ${filters.reduce((a, b) => sql`${a} and ${b}`)}`;
     }
 
-    const { rows: objects } = await pool.query(query);
+    const {
+      rows: objects
+    } = await pool.query(query);
 
     return objects;
   }
@@ -326,11 +353,15 @@ class UserType extends Type {
     }
 
     return async (transaction) => {
-      const query = sql`insert into ${sql.identifier([this.name])}
+      const query = sql `insert into ${sql.identifier([this.name])}
         (${sql.identifierList(context.columns.map(col => [col.field]))}) values 
         (${sql.valueList(context.columns.map(col => col.value))}) returning id`;
 
-      const { rows: [{ id }] } = await transaction.query(query);
+      const {
+        rows: [{
+          id
+        }]
+      } = await transaction.query(query);
 
       await Promise.all(context.children.map(child => {
         return child(transaction, id);
@@ -358,7 +389,7 @@ class UserType extends Type {
     }
 
     return async (transaction) => {
-      const query = sql`update ${sql.identifier([this.name])} set ${sql.assignmentList(context.assignmentList)} 
+      const query = sql `update ${sql.identifier([this.name])} set ${sql.assignmentList(context.assignmentList)} 
         where ${sql.identifier([this.name, 'id'])} = ${id}`;
 
       await Promise.all([transaction.query(query), ...context.children.map(child => {
@@ -391,7 +422,7 @@ class ReferencesManyRelation extends Type {
       field.include(context);
     }
 
-    var query = sql`select ${context.columns.reduce((a, b) => sql`${a}, ${b}`)} from ${sql.identifier([this.type.name])}`;
+    var query = sql `select ${context.columns.reduce((a, b) => sql`${a}, ${b}`)} from ${sql.identifier([this.type.name])}`;
 
     for (const join of context.joins) {
       query = join(query);
@@ -399,19 +430,23 @@ class ReferencesManyRelation extends Type {
 
     const filters = this.type.buildFilters(queryParams);
 
-    filters.push(sql`${sql.identifier([this.type.name, this.foreignKey])} = ${key}`);
+    filters.push(sql `${sql.identifier([this.type.name, this.foreignKey])} = ${key}`);
 
     if (filters.length > 0) {
-      query = sql`${query} where ${filters.reduce((a, b) => sql`${a} and ${b}`)}`;
+      query = sql `${query} where ${filters.reduce((a, b) => sql`${a} and ${b}`)}`;
     }
 
-    const { rows: objects } = await pool.query(query);
+    const {
+      rows: objects
+    } = await pool.query(query);
 
     return objects;
   }
 
   include(context) {
-    context.columns.push(sql`(select array_agg(json_build_object('value', id, 'label', ${sql.identifier([this.type.label])}) order by id) from ${sql.identifier([this.type.name])} where ${sql.identifier([this.type.name, this.foreignKey])} = ${sql.identifier([this.inverseRelation.type.name, 'id'])}) as ${sql.identifier([this.inverseRelation.foreignKey])}`);
+    if (this.type.label) {
+      context.columns.push(sql `(select array_agg(json_build_object('value', id, 'label', ${sql.identifier([this.type.label])}) order by id) from ${sql.identifier([this.type.name])} where ${sql.identifier([this.type.name, this.foreignKey])} = ${sql.identifier([this.inverseRelation.type.name, 'id'])}) as ${sql.identifier([this.inverseRelation.foreignKey])}`);
+    }
   }
 }
 
@@ -426,10 +461,10 @@ class HasManyRelation extends ReferencesManyRelation {
     }
 
     context.children.push(async (transaction, parentId) => {
-      await transaction.query(sql`insert into ${sql.identifier([this.through])}(${sql.identifierList([[this.inverseRelation.type.name], [this.type.name]])})
+      await transaction.query(sql `insert into ${sql.identifier([this.through])}(${sql.identifierList([[this.inverseRelation.type.name], [this.type.name]])})
         values ${sql.tupleList(vals.map(val => [parentId, val]))} on conflict do nothing`);
 
-      return await transaction.query(sql`delete from ${sql.identifier([this.through])} 
+      return await transaction.query(sql `delete from ${sql.identifier([this.through])} 
         where ${sql.identifier([this.through, this.inverseRelation.type.name])} = ${parentId} and ${sql.identifier([this.through, this.type.name])} != all (${sql.array(vals, 'int4')})`);
     });
   }
@@ -456,32 +491,34 @@ class ReferencesOneRelation extends Type {
       field.include(context);
     }
 
-    var query = sql`select ${context.columns.reduce((a, b) => sql`${a}, ${b}`)} from ${sql.identifier([this.type.name])}`;
+    var query = sql `select ${context.columns.reduce((a, b) => sql`${a}, ${b}`)} from ${sql.identifier([this.type.name])}`;
 
     for (const join of context.joins) {
       query = join(query);
     }
 
-    query = sql`${query} join ${sql.identifier([this.inverseRelation.type.name])} as ${sql.identifier([this.foreignKey])} on ${sql.identifier([this.type.name, 'id'])} = ${sql.identifier([this.foreignKey, this.inverseRelation.foreignKey])}`;
+    query = sql `${query} join ${sql.identifier([this.inverseRelation.type.name])} as ${sql.identifier([this.foreignKey])} on ${sql.identifier([this.type.name, 'id'])} = ${sql.identifier([this.foreignKey, this.inverseRelation.foreignKey])}`;
 
     const filters = this.type.buildFilters(queryParams);
 
-    filters.push(sql`${sql.identifier([this.foreignKey, 'id'])} = ${key}`);
+    filters.push(sql `${sql.identifier([this.foreignKey, 'id'])} = ${key}`);
 
     if (filters.length > 0) {
-      query = sql`${query} where ${filters.reduce((a, b) => sql`${a} and ${b}`)}`;
+      query = sql `${query} where ${filters.reduce((a, b) => sql`${a} and ${b}`)}`;
     }
 
-    const { rows: [object] } = await pool.query(query);
+    const {
+      rows: [object]
+    } = await pool.query(query);
 
     return object;
   }
 
   include(context) {
-    context.joins.push(query => sql`${query} join ${sql.identifier([this.type.name])} as ${sql.identifier([this.inverseRelation.foreignKey])} 
+    context.joins.push(query => sql `${query} join ${sql.identifier([this.type.name])} as ${sql.identifier([this.inverseRelation.foreignKey])} 
       on ${sql.identifier([this.type.name, 'id'])} = ${sql.identifier([this.inverseRelation.type.name, this.inverseRelation.foreignKey])}`);
 
-    context.columns.push(sql`json_build_object('value', ${sql.identifier([this.inverseRelation.foreignKey, 'id'])}, 'label', ${sql.identifier([this.inverseRelation.foreignKey, this.type.label])}) as ${sql.identifier([this.inverseRelation.foreignKey])}`);
+    context.columns.push(sql `json_build_object('value', ${sql.identifier([this.inverseRelation.foreignKey, 'id'])}, 'label', ${sql.identifier([this.inverseRelation.foreignKey, this.type.label])}) as ${sql.identifier([this.inverseRelation.foreignKey])}`);
   }
 }
 
@@ -495,7 +532,7 @@ class ReferencesManyThroughRelation extends Type {
   }
 
   include(context) {
-    context.columns.push(sql`(select array_agg(json_build_object('value', ${sql.identifier([this.inverseRelation.foreignKey, 'id'])}, 'label', ${sql.identifier([this.inverseRelation.foreignKey, this.type.label])}) order by ${sql.identifier([this.inverseRelation.foreignKey, 'id'])}) 
+    context.columns.push(sql `(select array_agg(json_build_object('value', ${sql.identifier([this.inverseRelation.foreignKey, 'id'])}, 'label', ${sql.identifier([this.inverseRelation.foreignKey, this.type.label])}) order by ${sql.identifier([this.inverseRelation.foreignKey, 'id'])}) 
       from ${sql.identifier([this.type.name])} as ${sql.identifier([this.inverseRelation.foreignKey])}
       join ${sql.identifier([this.through])} on ${sql.identifier([this.through, this.type.name])} = ${sql.identifier([this.inverseRelation.foreignKey, 'id'])}
       where ${sql.identifier([this.through, this.type.name])} = ${sql.identifier([this.inverseRelation.foreignKey, 'id'])}) as ${sql.identifier([this.inverseRelation.foreignKey])}`);
@@ -514,23 +551,25 @@ class ReferencesManyThroughRelation extends Type {
       field.include(context);
     }
 
-    var query = sql`select ${context.columns.reduce((a, b) => sql`${a}, ${b}`)} from ${sql.identifier([this.type.name])}`;
+    var query = sql `select ${context.columns.reduce((a, b) => sql`${a}, ${b}`)} from ${sql.identifier([this.type.name])}`;
 
     for (const join of context.joins) {
       query = join(query);
     }
 
-    query = sql`${query} join ${sql.identifier([this.through])} on ${sql.identifier([this.through, this.type.name])} = ${sql.identifier([this.type.name, 'id'])}`;
+    query = sql `${query} join ${sql.identifier([this.through])} on ${sql.identifier([this.through, this.type.name])} = ${sql.identifier([this.type.name, 'id'])}`;
 
     const filters = this.type.buildFilters(queryParams);
 
-    filters.push(sql`${sql.identifier([this.through, this.inverseRelation.type.name])} = ${key}`);
+    filters.push(sql `${sql.identifier([this.through, this.inverseRelation.type.name])} = ${key}`);
 
     if (filters.length > 0) {
-      query = sql`${query} where ${filters.reduce((a, b) => sql`${a} and ${b}`)}`;
+      query = sql `${query} where ${filters.reduce((a, b) => sql`${a} and ${b}`)}`;
     }
 
-    const { rows: objects } = await pool.query(query);
+    const {
+      rows: objects
+    } = await pool.query(query);
 
     return objects;
   }
@@ -548,7 +587,7 @@ class HasManyThroughRelation extends ReferencesManyThroughRelation {
     }
 
     context.children.push((transaction, parentId) => {
-      return transaction.query(sql`insert into ${sql.identifier([this.through])}(${sql.identifierList([[this.inverseRelation.type.name], [this.type.name]])})
+      return transaction.query(sql `insert into ${sql.identifier([this.through])}(${sql.identifierList([[this.inverseRelation.type.name], [this.type.name]])})
         values ${sql.tupleList(vals.map(val => [parentId, val]))} on conflict do nothing`);
     });
   }
@@ -560,10 +599,10 @@ class HasManyThroughRelation extends ReferencesManyThroughRelation {
     }
 
     context.children.push(async (transaction, parentId) => {
-      await transaction.query(sql`insert into ${sql.identifier([this.through])}(${sql.identifierList([[this.inverseRelation.type.name], [this.type.name]])})
+      await transaction.query(sql `insert into ${sql.identifier([this.through])}(${sql.identifierList([[this.inverseRelation.type.name], [this.type.name]])})
         values ${sql.tupleList(vals.map(val => [parentId, val]))} on conflict do nothing`);
 
-      return await transaction.query(sql`delete from ${sql.identifier([this.through])} 
+      return await transaction.query(sql `delete from ${sql.identifier([this.through])} 
         where ${sql.identifier([this.through, this.inverseRelation.type.name])} = ${parentId} and ${sql.identifier([this.through, this.type.name])} != all (${sql.array(vals, 'int4')})`);
     });
   }
@@ -589,5 +628,6 @@ module.exports = {
   IntType,
   DateTimeType,
   DateType,
+  DecimalType,
   TimeType
 };
